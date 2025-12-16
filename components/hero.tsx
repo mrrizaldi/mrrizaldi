@@ -11,7 +11,6 @@ export function Hero() {
   const greetingRef = useRef<HTMLDivElement>(null)
   const nameRef = useRef<HTMLHeadingElement>(null)
   const roleRef = useRef<HTMLParagraphElement>(null)
-  const scrollIndicatorRef = useRef<HTMLDivElement>(null)
 
   useGSAP(() => {
     if (!sectionRef.current) return
@@ -21,7 +20,6 @@ export function Hero() {
     // Set initial states
     gsap.set(greetingRef.current, { opacity: 0, y: 50, scale: 0.9 })
     gsap.set(roleRef.current, { opacity: 0, y: 60, scale: 0.9 })
-    gsap.set(scrollIndicatorRef.current, { opacity: 0, y: 30 })
 
     // Entrance sequence
     tl.to(greetingRef.current, {
@@ -45,7 +43,7 @@ export function Hero() {
         span.style.display = "inline-block";
         span.style.opacity = "0";
         span.style.transform = "translateY(-50px)";
-        span.style.whiteSpace = "pre"; // Preserve spaces
+        span.style.whiteSpace = "pre";
         return span;
       });
 
@@ -56,7 +54,7 @@ export function Hero() {
         opacity: 1,
         y: 0,
         duration: 0.3,
-        stagger: 0.1, // Typing speed - slower for better visibility
+        stagger: 0.1,
         ease: "power2.out",
       }, "-=0.4");
     }
@@ -68,12 +66,6 @@ export function Hero() {
       duration: 1.2,
       ease: "power3.out",
     }, "-=0.5")
-      .to(scrollIndicatorRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power2.out",
-      }, "-=0.4")
 
   }, { scope: sectionRef })
 
@@ -110,17 +102,6 @@ export function Hero() {
         >
           Software Engineer
         </p>
-      </div>
-
-      {/* Enhanced scroll indicator */}
-      <div
-        ref={scrollIndicatorRef}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4"
-      >
-        <span className="text-gray-600 text-xs tracking-[0.3em] uppercase font-light">Scroll</span>
-        <div className="w-[1px] h-16 bg-gradient-to-b from-gray-600 via-gray-700 to-transparent relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-6 bg-gradient-to-b from-white to-transparent animate-bounce"></div>
-        </div>
       </div>
     </section>
   )

@@ -147,10 +147,12 @@ export function Skills() {
     <section
       ref={sectionRef}
       id="skills"
-      className="py-32 bg-black relative overflow-hidden"
+      className="min-h-screen py-24 bg-black relative overflow-hidden flex flex-col justify-center"
     >
-      {/* Flowing dots background */}
-      <FlowingDots />
+      {/* Flowing dots background - positioned absolutely to fill entire section */}
+      <div className="absolute inset-0">
+        <FlowingDots />
+      </div>
 
       <div className="relative z-10">
         {/* Bold Header */}
