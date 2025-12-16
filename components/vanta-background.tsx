@@ -1,78 +1,90 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
-import Script from 'next/script';
+import React, { useEffect, useRef, useState } from 'react';
+
+// Define types for Vanta effect
+interface VantaEffect {
+  destroy: () => void;
+  setOptions: (options: Record<string, unknown>) => void;
+  resize: () => void;
+}
 
 export function VantaBackground() {
   const vantaRef = useRef<HTMLDivElement>(null);
-  const vantaEffect = useRef<any>(null);
-  const [scriptsLoaded, setScriptsLoaded] = React.useState(false);
+  const [vantaEffect, setVantaEffect] = useState<VantaEffect | null>(null);
 
   useEffect(() => {
-    if (!scriptsLoaded || !vantaRef.current || vantaEffect.current) return;
+    // Guard for client-side only
+    if (typeof window === 'undefined') return;
 
-    const initVanta = () => {
+    let effect: VantaEffect | null = null;
+
+    const loadVanta = async () => {
       try {
-        const VANTA = (window as any).VANTA;
-        const THREE = (window as any).THREE;
+        // Dynamically import p5 and vanta topology
+        const p5Module = await import('p5');
+        const p5 = p5Module.default;
 
-        if (!VANTA || !THREE) {
-          console.log('Waiting for VANTA and THREE...');
-          return;
+        // Make p5 available globally (required by vanta)
+        (window as unknown as { p5: typeof p5 }).p5 = p5;
+
+        // Import vanta topology
+        const TOPOLOGY = (await import('vanta/dist/vanta.topology.min')).default;
+
+        if (vantaRef.current && !vantaEffect) {
+          effect = TOPOLOGY({
+            el: vantaRef.current,
+            p5: p5,
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0xffffff,
+            backgroundColor: 0x000000,
+          }) as VantaEffect;
+
+          setVantaEffect(effect);
         }
-
-        vantaEffect.current = VANTA.TOPOLOGY({
-          el: vantaRef.current,
-          THREE: THREE,
-          mouseControls: true,
-          touchControls: true,
-          gyroControls: false,
-          minHeight: 200.00,
-          minWidth: 200.00,
-          scale: 1.00,
-          scaleMobile: 1.00,
-          color: 0xffffff,
-          backgroundColor: 0x000000,
-        });
       } catch (error) {
-        console.error('Vanta init error:', error);
+        console.error('Failed to load Vanta effect:', error);
       }
     };
 
-    // Small delay to ensure scripts are fully ready
-    setTimeout(initVanta, 100);
+    loadVanta();
 
     return () => {
-      if (vantaEffect.current) {
+      if (effect) {
         try {
-          vantaEffect.current.destroy();
+          effect.destroy();
         } catch (e) {
           console.error('Error destroying Vanta:', e);
         }
       }
     };
-  }, [scriptsLoaded]);
+  }, []);
+
+  // Cleanup when vantaEffect changes
+  useEffect(() => {
+    return () => {
+      if (vantaEffect) {
+        try {
+          vantaEffect.destroy();
+        } catch (e) {
+          console.error('Error destroying Vanta:', e);
+        }
+      }
+    };
+  }, [vantaEffect]);
 
   return (
-    <>
-      <Script
-        src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"
-        strategy="beforeInteractive"
-        onLoad={() => console.log('THREE loaded')}
-      />
-      <Script
-        src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.topology.min.js"
-        strategy="afterInteractive"
-        onLoad={() => {
-          console.log('VANTA loaded');
-          setScriptsLoaded(true);
-        }}
-      />
-      <div
-        ref={vantaRef}
-        className="fixed top-0 left-0 w-full h-full -z-10"
-        style={{ opacity: 0.25 }}
-      />
-    </>
+    <div
+      ref={vantaRef}
+      className="fixed top-0 left-0 w-full h-full -z-10"
+      style={{ opacity: 0.3 }}
+      aria-hidden="true"
+    />
   );
 }

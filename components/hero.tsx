@@ -15,12 +15,10 @@ export function Hero() {
   useGSAP(() => {
     if (!sectionRef.current) return
 
-    // Enhanced entrance animation only - NO PARALLAX
     const tl = gsap.timeline({ defaults: { ease: "power4.out" } })
 
     // Set initial states
     gsap.set(greetingRef.current, { opacity: 0, y: 50, scale: 0.9 })
-    gsap.set(nameRef.current, { opacity: 0, y: 80, scale: 0.85 })
     gsap.set(roleRef.current, { opacity: 0, y: 60, scale: 0.9 })
     gsap.set(scrollIndicatorRef.current, { opacity: 0, y: 30 })
 
@@ -33,26 +31,48 @@ export function Hero() {
       delay: 0.3,
       ease: "power3.out",
     })
-      .to(nameRef.current, {
+
+    // Typing animation for the name - split into characters
+    if (nameRef.current) {
+      const text = nameRef.current.textContent || "";
+      nameRef.current.innerHTML = "";
+
+      // Split text into individual characters and wrap in spans, preserving spaces
+      const chars = text.split("").map((char) => {
+        const span = document.createElement("span");
+        span.textContent = char;
+        span.style.display = "inline-block";
+        span.style.opacity = "0";
+        span.style.transform = "translateY(-50px)";
+        span.style.whiteSpace = "pre"; // Preserve spaces
+        return span;
+      });
+
+      chars.forEach((span) => nameRef.current?.appendChild(span));
+
+      // Animate each character appearing from top with typing effect
+      tl.to(chars, {
         opacity: 1,
         y: 0,
-        scale: 1,
-        duration: 1.4,
-        ease: "power4.out",
-      }, "-=0.8")
-      .to(roleRef.current, {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 1.2,
-        ease: "power3.out",
-      }, "-=1")
+        duration: 0.3,
+        stagger: 0.1, // Typing speed - slower for better visibility
+        ease: "power2.out",
+      }, "-=0.4");
+    }
+
+    tl.to(roleRef.current, {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 1.2,
+      ease: "power3.out",
+    }, "-=0.5")
       .to(scrollIndicatorRef.current, {
         opacity: 1,
         y: 0,
         duration: 0.8,
         ease: "power2.out",
-      }, "-=0.6")
+      }, "-=0.4")
 
   }, { scope: sectionRef })
 
@@ -60,28 +80,12 @@ export function Hero() {
     <section
       ref={sectionRef}
       id="home"
-      className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center bg-transparent relative overflow-hidden"
     >
-      {/* Enhanced background elements */}
+      {/* Subtle overlay to blend with Vanta background */}
       <div className="absolute inset-0">
-        {/* Large gradient orbs with subtle animation */}
-        <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-white/[0.015] rounded-full blur-3xl animate-pulse"></div>
-        <div
-          className="absolute bottom-1/3 right-1/4 w-[700px] h-[700px] bg-white/[0.01] rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: '2s', animationDuration: '8s' }}
-        ></div>
-
-        {/* Finer grid pattern */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{
-          backgroundImage: `
-            linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px)
-          `,
-          backgroundSize: '100px 100px'
-        }}></div>
-
-        {/* Radial gradient overlay */}
-        <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/20 to-black/40"></div>
+        {/* Radial gradient overlay for depth */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/60"></div>
       </div>
 
       {/* Main content */}
@@ -93,16 +97,9 @@ export function Hero() {
           </span>
         </div>
 
-        {/* Main name heading with refined typography */}
-        <h1 ref={nameRef} className="mb-10">
-          <span className="block text-6xl md:text-8xl lg:text-[10rem] font-black text-white tracking-tighter leading-[0.9]">
-            Hi, I'm{" "}
-            <span className="relative inline-block">
-              Rafi
-              {/* Enhanced underline with gradient */}
-              <span className="absolute -bottom-3 md:-bottom-4 left-0 w-full h-1.5 md:h-2 bg-gradient-to-r from-white/60 via-white to-white/60"></span>
-            </span>
-          </span>
+        {/* Main name heading with typing animation */}
+        <h1 ref={nameRef} className="mb-10 text-6xl md:text-8xl lg:text-[10rem] font-black text-white tracking-tighter leading-[0.9]">
+          Hi, I'm Rafi
         </h1>
 
         {/* Role/subtitle */}
