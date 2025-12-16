@@ -5,7 +5,6 @@ import "./globals.css"
 import { Footer } from "@/components/footer"
 import { GsapProvider } from "@/components/gsap-provider"
 import RippleCursor from "@/components/ripple-cursor"
-import { VantaBackground } from "@/components/vanta-background"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,7 +34,6 @@ export default function RootLayout({
     <html lang="en" className={`scroll-smooth ${inter.variable}`} suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
         <GsapProvider>
-          <VantaBackground />
           <RippleCursor />
           {children}
           <Footer />
