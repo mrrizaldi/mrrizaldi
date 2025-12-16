@@ -1,143 +1,127 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { ArrowDown, Github, Linkedin, Mail } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
-import { TypingAnimation } from "@/components/typing-animation"
+import { useRef } from "react"
+import gsap from "gsap"
+import { useGSAP } from "@gsap/react"
 
 export function Hero() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const greetingRef = useRef<HTMLDivElement>(null)
+  const nameRef = useRef<HTMLHeadingElement>(null)
+  const roleRef = useRef<HTMLParagraphElement>(null)
+  const scrollIndicatorRef = useRef<HTMLDivElement>(null)
+
+  useGSAP(() => {
+    if (!sectionRef.current) return
+
+    // Enhanced entrance animation only - NO PARALLAX
+    const tl = gsap.timeline({ defaults: { ease: "power4.out" } })
+
+    // Set initial states
+    gsap.set(greetingRef.current, { opacity: 0, y: 50, scale: 0.9 })
+    gsap.set(nameRef.current, { opacity: 0, y: 80, scale: 0.85 })
+    gsap.set(roleRef.current, { opacity: 0, y: 60, scale: 0.9 })
+    gsap.set(scrollIndicatorRef.current, { opacity: 0, y: 30 })
+
+    // Entrance sequence
+    tl.to(greetingRef.current, {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 1.2,
+      delay: 0.3,
+      ease: "power3.out",
+    })
+      .to(nameRef.current, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 1.4,
+        ease: "power4.out",
+      }, "-=0.8")
+      .to(roleRef.current, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 1.2,
+        ease: "power3.out",
+      }, "-=1")
+      .to(scrollIndicatorRef.current, {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: "power2.out",
+      }, "-=0.6")
+
+  }, { scope: sectionRef })
+
   return (
     <section
+      ref={sectionRef}
       id="home"
-      className="min-h-screen flex items-center justify-center bg-gradient-to-b from-black via-gray-900 to-gray-800 matrix-bg relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden"
     >
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-matrix-500/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-matrix-500/3 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      {/* Enhanced background elements */}
+      <div className="absolute inset-0">
+        {/* Large gradient orbs with subtle animation */}
+        <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-white/[0.015] rounded-full blur-3xl animate-pulse"></div>
+        <div
+          className="absolute bottom-1/3 right-1/4 w-[700px] h-[700px] bg-white/[0.01] rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: '2s', animationDuration: '8s' }}
+        ></div>
+
+        {/* Finer grid pattern */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px)
+          `,
+          backgroundSize: '100px 100px'
+        }}></div>
+
+        {/* Radial gradient overlay */}
+        <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/20 to-black/40"></div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="space-y-12">
-          {/* Main content with image and text */}
-          <div className="flex flex-col lg:flex-row items-center justify-center gap-12 max-w-6xl mx-auto">
-            {/* Profile Image */}
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-matrix-500 to-matrix-400 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-              <div className="relative">
-                <Image
-                  src="/images/profile_picture.jpg"
-                  alt="Muhammad Rafi Rizaldi"
-                  width={300}
-                  height={300}
-                  className="w-64 h-64 lg:w-80 lg:h-80 rounded-full object-cover border-2 border-matrix-500 shadow-2xl relative z-10"
-                  priority
-                />
-                {/* Glow effect */}
-                <div className="absolute inset-0 rounded-full bg-matrix-500/20 blur-xl animate-pulse"></div>
-              </div>
-            </div>
+      {/* Main content */}
+      <div ref={containerRef} className="relative z-10 text-center px-4">
+        {/* Small greeting with letter spacing */}
+        <div ref={greetingRef} className="mb-8">
+          <span className="text-gray-500 text-base md:text-lg font-light tracking-[0.4em] uppercase">
+            Hello, World
+          </span>
+        </div>
 
-            {/* Text Content */}
-            <div className="text-center lg:text-left space-y-6 flex-1">
-              <div className="space-y-4">
-                <div className="text-lg md:text-xl text-matrix-400 font-mono">console.log("Hello World!");</div>
+        {/* Main name heading with refined typography */}
+        <h1 ref={nameRef} className="mb-10">
+          <span className="block text-6xl md:text-8xl lg:text-[10rem] font-black text-white tracking-tighter leading-[0.9]">
+            Hi, I'm{" "}
+            <span className="relative inline-block">
+              Rafi
+              {/* Enhanced underline with gradient */}
+              <span className="absolute -bottom-3 md:-bottom-4 left-0 w-full h-1.5 md:h-2 bg-gradient-to-r from-white/60 via-white to-white/60"></span>
+            </span>
+          </span>
+        </h1>
 
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                  Hi, I'm{" "}
-                  <span className="block text-matrix-500 text-glow">
-                    <TypingAnimation text="Muhammad Rafi Rizaldi" speed={120} className="inline-block" />
-                  </span>
-                </h1>
+        {/* Role/subtitle */}
+        <p
+          ref={roleRef}
+          className="text-2xl md:text-3xl lg:text-4xl text-gray-400 font-light tracking-[0.15em] uppercase"
+        >
+          Software Engineer
+        </p>
+      </div>
 
-                <div className="space-y-2">
-                  <p className="text-xl md:text-2xl text-matrix-400 font-semibold">
-                    Software Engineer
-                  </p>
-                  <p className="text-lg text-gray-300 max-w-2xl">
-                    A second-year student at Politeknik Elektronika Negeri Surabaya, passionate about technology and
-                    building impactful software.
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <p className="text-gray-400 max-w-2xl leading-relaxed">
-                  I'm a full-stack developer with hands-on experience in web, mobile, and intelligent systems. A Linux
-                  enthusiast at heart, I love exploring different distros and leveraging open-source tools to solve
-                  real-world problems.
-                </p>
-
-                {/* Tech stack badges */}
-                <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
-                  <span className="px-3 py-1 bg-matrix-900/50 text-matrix-400 text-sm rounded-full border border-matrix-500/30">
-                    Next.js
-                  </span>
-                  <span className="px-3 py-1 bg-matrix-900/50 text-matrix-400 text-sm rounded-full border border-matrix-500/30">
-                    Flutter
-                  </span>
-                  <span className="px-3 py-1 bg-matrix-900/50 text-matrix-400 text-sm rounded-full border border-matrix-500/30">
-                    C++
-                  </span>
-                  <span className="px-3 py-1 bg-matrix-900/50 text-matrix-400 text-sm rounded-full border border-matrix-500/30">
-                    ROS
-                  </span>
-                  <span className="px-3 py-1 bg-matrix-900/50 text-matrix-400 text-sm rounded-full border border-matrix-500/30">
-                    Linux
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button asChild size="lg" className="btn-matrix text-black font-semibold px-8 py-3">
-              <Link href="#projects">View My Work</Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="border-matrix-500 text-matrix-500 hover:bg-matrix-500 hover:text-black px-8 py-3 transition-all duration-300"
-            >
-              <Link href="#contact">Get In Touch</Link>
-            </Button>
-          </div>
-
-          {/* Social Links */}
-          <div className="flex justify-center space-x-8">
-            <Link
-              href="https://github.com"
-              className="text-gray-400 hover:text-matrix-500 transition-all duration-300 transform hover:scale-110 glow-green"
-              title="GitHub"
-            >
-              <Github className="h-7 w-7" />
-            </Link>
-            <Link
-              href="https://linkedin.com"
-              className="text-gray-400 hover:text-matrix-500 transition-all duration-300 transform hover:scale-110 glow-green"
-              title="LinkedIn"
-            >
-              <Linkedin className="h-7 w-7" />
-            </Link>
-            <Link
-              href="mailto:your.email@example.com"
-              className="text-gray-400 hover:text-matrix-500 transition-all duration-300 transform hover:scale-110 glow-green"
-              title="Email"
-            >
-              <Mail className="h-7 w-7" />
-            </Link>
-          </div>
-
-          {/* Scroll indicator */}
-          {/* <div className="flex flex-col items-center space-y-2">
-            <span className="text-matrix-500 text-sm font-mono">scroll down</span>
-            <div className="animate-bounce">
-              <ArrowDown className="h-6 w-6 text-matrix-500" />
-            </div>
-          </div> */}
+      {/* Enhanced scroll indicator */}
+      <div
+        ref={scrollIndicatorRef}
+        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4"
+      >
+        <span className="text-gray-600 text-xs tracking-[0.3em] uppercase font-light">Scroll</span>
+        <div className="w-[1px] h-16 bg-gradient-to-b from-gray-600 via-gray-700 to-transparent relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-6 bg-gradient-to-b from-white to-transparent animate-bounce"></div>
         </div>
       </div>
     </section>

@@ -2,10 +2,15 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
+import { GsapProvider } from "@/components/gsap-provider"
+import RippleCursor from "@/components/ripple-cursor"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-inter",
+})
 
 export const metadata: Metadata = {
   title: "Muhammad Rafi Rizaldi | Software Engineer & Robotics Developer",
@@ -26,11 +31,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className={`scroll-smooth ${inter.variable}`}>
       <body className={inter.className}>
-        <Navigation />
-        {children}
-        <Footer />
+        <GsapProvider>
+          <RippleCursor />
+          {children}
+          <Footer />
+        </GsapProvider>
       </body>
     </html>
   )

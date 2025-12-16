@@ -1,10 +1,25 @@
+"use client"
+
+import { useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ExternalLink, Github, Calendar, MapPin } from "lucide-react"
 import Link from "next/link"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { useGSAP } from "@gsap/react"
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger)
+}
 
 export function Projects() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const titleRef = useRef<HTMLDivElement>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const ctaRef = useRef<HTMLDivElement>(null)
+
   const projects = [
     {
       title: "Intelligent Humanoid Robot EROS",
@@ -52,7 +67,6 @@ export function Projects() {
       category: "AI Research",
       featured: true,
     },
-
     {
       title: "Agriculture Management Web App",
       duration: "1 Week (Hackathon)",
@@ -111,32 +125,148 @@ export function Projects() {
     },
   ]
 
-  const categories = ["All", "Robotics", "Web Development", "Mobile Development", "Desktop Development"]
+  useGSAP(() => {
+    if (!sectionRef.current) return
+
+    // Title animation
+    if (titleRef.current) {
+      gsap.set(titleRef.current, { opacity: 0, y: 30 })
+      gsap.to(titleRef.current, {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: titleRef.current,
+          start: "top 85%",
+          toggleActions: "play none none none",
+        },
+      })
+    }
+
+    // Project cards stagger animation
+    if (gridRef.current) {
+      const cards = gridRef.current.querySelectorAll(".project-card")
+
+      cards.forEach((card) => {
+        gsap.set(card, { opacity: 0, y: 60, scale: 0.98 })
+
+        gsap.to(card, {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.7,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+        })
+
+        // Tech badges stagger
+        const techBadges = card.querySelectorAll(".tech-badge")
+        gsap.set(techBadges, { opacity: 0, scale: 0.8 })
+        gsap.to(techBadges, {
+          opacity: 1,
+          scale: 1,
+          duration: 0.3,
+          stagger: 0.05,
+          ease: "back.out(1.7)",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 80%",
+            toggleActions: "play none none none",
+          },
+        })
+
+        // STAR sections sequential reveal
+        const starSections = card.querySelectorAll(".star-section")
+        gsap.set(starSections, { opacity: 0, x: -20 })
+        gsap.to(starSections, {
+          opacity: 1,
+          x: 0,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 75%",
+            toggleActions: "play none none none",
+          },
+        })
+
+        // Action buttons
+        const buttons = card.querySelectorAll(".action-btn")
+        gsap.set(buttons, { opacity: 0, y: 15 })
+        gsap.to(buttons, {
+          opacity: 1,
+          y: 0,
+          duration: 0.4,
+          stagger: 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 70%",
+            toggleActions: "play none none none",
+          },
+        })
+      })
+    }
+
+    // CTA button animation
+    if (ctaRef.current) {
+      gsap.set(ctaRef.current, { opacity: 0, y: 30 })
+      gsap.to(ctaRef.current, {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ctaRef.current,
+          start: "top 90%",
+          toggleActions: "play none none none",
+        },
+      })
+    }
+
+  }, { scope: sectionRef })
 
   return (
-    <section id="projects" className="py-20 bg-gradient-to-b from-gray-800 via-gray-900 to-gray-700 matrix-bg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Featured Projects</h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+    <section ref={sectionRef} id="projects" className="py-32 bg-black relative">
+      {/* Subtle grid */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px'
+        }}></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div ref={titleRef} className="text-center mb-20">
+          <h2 className="text-6xl md:text-8xl font-black text-white mb-6 tracking-tighter uppercase">Projects</h2>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto font-light">
             A showcase of my technical projects using the STAR method (Situation, Task, Action, Result)
           </p>
         </div>
 
-        <div className="grid gap-8">
+        <div ref={gridRef} className="grid gap-8">
           {projects.map((project, index) => (
             <Card
               key={index}
-              className={`bg-gray-900/50 border-gray-800/50 backdrop-blur-sm ${project.featured ? "border-2 border-matrix-500/50 bg-matrix-950/20" : ""}`}
+              className={`bg-zinc-900/50 border-zinc-800 backdrop-blur-sm project-card ${project.featured ? "border-2 border-white/30" : ""}`}
             >
               <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
-                    <CardTitle className="text-xl md:text-2xl text-white mb-2">
+                    <CardTitle className="text-xl md:text-2xl text-white mb-2 font-bold">
                       {project.title}
-                      {project.featured && <Badge className="ml-2 bg-matrix-600 text-black">Featured</Badge>}
+                      {project.featured && <Badge className="ml-2 bg-white text-black font-bold">Featured</Badge>}
                     </CardTitle>
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
                         {project.duration}
@@ -149,7 +279,7 @@ export function Projects() {
                   </div>
                   <Badge
                     variant="outline"
-                    className="w-fit bg-matrix-900/50 text-matrix-400 border border-matrix-500/30"
+                    className="w-fit bg-zinc-800 text-white border-zinc-700"
                   >
                     {project.category}
                   </Badge>
@@ -159,7 +289,7 @@ export function Projects() {
                     <Badge
                       key={techIndex}
                       variant="secondary"
-                      className="bg-gray-800/50 text-gray-300 border border-gray-600/30"
+                      className="bg-zinc-800 text-gray-300 border border-zinc-700 tech-badge"
                     >
                       {tech}
                     </Badge>
@@ -169,48 +299,48 @@ export function Projects() {
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <div>
+                    <div className="star-section">
                       <h4 className="font-semibold text-white mb-2 flex items-center">
-                        <span className="bg-matrix-100/10 text-matrix-400 px-2 py-1 rounded text-xs font-medium mr-2">
+                        <span className="bg-white/10 text-white px-2 py-1 rounded text-xs font-bold mr-2">
                           SITUATION
                         </span>
                       </h4>
-                      <p className="text-gray-300 text-sm leading-relaxed">{project.situation}</p>
+                      <p className="text-gray-400 text-sm leading-relaxed">{project.situation}</p>
                     </div>
-                    <div>
+                    <div className="star-section">
                       <h4 className="font-semibold text-white mb-2 flex items-center">
-                        <span className="bg-green-100/10 text-green-400 px-2 py-1 rounded text-xs font-medium mr-2">
+                        <span className="bg-white/10 text-white px-2 py-1 rounded text-xs font-bold mr-2">
                           TASK
                         </span>
                       </h4>
-                      <p className="text-gray-300 text-sm leading-relaxed">{project.task}</p>
+                      <p className="text-gray-400 text-sm leading-relaxed">{project.task}</p>
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <div>
+                    <div className="star-section">
                       <h4 className="font-semibold text-white mb-2 flex items-center">
-                        <span className="bg-orange-100/10 text-orange-400 px-2 py-1 rounded text-xs font-medium mr-2">
+                        <span className="bg-white/10 text-white px-2 py-1 rounded text-xs font-bold mr-2">
                           ACTION
                         </span>
                       </h4>
-                      <p className="text-gray-300 text-sm leading-relaxed">{project.action}</p>
+                      <p className="text-gray-400 text-sm leading-relaxed">{project.action}</p>
                     </div>
-                    <div>
+                    <div className="star-section">
                       <h4 className="font-semibold text-white mb-2 flex items-center">
-                        <span className="bg-purple-100/10 text-purple-400 px-2 py-1 rounded text-xs font-medium mr-2">
+                        <span className="bg-white/10 text-white px-2 py-1 rounded text-xs font-bold mr-2">
                           RESULT
                         </span>
                       </h4>
-                      <p className="text-gray-300 text-sm leading-relaxed">{project.result}</p>
+                      <p className="text-gray-400 text-sm leading-relaxed">{project.result}</p>
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-3 pt-4 border-t">
-                  <Button variant="outline" size="sm">
+                <div className="flex gap-3 pt-4 border-t border-zinc-800">
+                  <Button variant="outline" size="sm" className="action-btn border-white text-white hover:bg-white hover:text-black">
                     <Github className="h-4 w-4 mr-2" />
                     View Code
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="action-btn border-white text-white hover:bg-white hover:text-black">
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Live Demo
                   </Button>
@@ -220,8 +350,8 @@ export function Projects() {
           ))}
         </div>
 
-        <div className="text-center mt-12">
-          <Button asChild variant="outline" size="lg">
+        <div ref={ctaRef} className="text-center mt-12">
+          <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-black">
             <Link href="https://github.com">
               <Github className="h-5 w-5 mr-2" />
               View All Projects on GitHub
