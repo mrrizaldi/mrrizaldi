@@ -31,7 +31,7 @@ importers:
         version: 0.518.0(react@19.2.3)
       next:
         specifier: 15.3.8
-        version: 15.3.4(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 15.3.8(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       p5:
         specifier: ^2.1.1
         version: 2.1.1
