@@ -3,6 +3,7 @@
 import { useRef } from "react"
 import gsap from "gsap"
 import { useGSAP } from "@gsap/react"
+import SmoothWavyCanvas from "./smooth-wavy-canvas"
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -82,27 +83,11 @@ export function Hero() {
       id="home"
       className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden"
     >
-      {/* Lightweight CSS background effects */}
-      <div className="absolute inset-0">
-        {/* Subtle gradient orbs */}
-        <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-white/[0.015] rounded-full blur-3xl animate-pulse"></div>
-        <div
-          className="absolute bottom-1/3 right-1/4 w-[700px] h-[700px] bg-white/[0.01] rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: '2s', animationDuration: '8s' }}
-        ></div>
+      {/* Smooth wavy canvas background */}
+      <SmoothWavyCanvas />
 
-        {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{
-          backgroundImage: `
-            linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px)
-          `,
-          backgroundSize: '80px 80px'
-        }}></div>
-
-        {/* Gradient overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/60"></div>
-      </div>
+      {/* Gradient overlay for depth */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 pointer-events-none"></div>
 
       {/* Main content */}
       <div ref={containerRef} className="relative z-10 text-center px-4">

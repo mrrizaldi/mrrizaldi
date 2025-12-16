@@ -155,3 +155,27 @@ html {
   background-size: 60px 60px;
   pointer-events: none;
 }
+
+/* Marquee animations for Tech Arsenal */
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.33%);
+  }
+}
+
+@keyframes marquee-right {
+  from {
+    transform: translateX(-33.33%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Pause marquee on hover */
+.group:hover > div {
+  animation-play-state: paused;
+}
