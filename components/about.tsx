@@ -165,7 +165,7 @@ export function About() {
     <section
       ref={sectionRef}
       id="about"
-      className="relative min-h-screen py-32 bg-black overflow-visible"
+      className="relative min-h-screen flex items-center bg-black overflow-visible py-16"
     >
       {/* Expanding circle background - curved top AND bottom matching reference */}
       <div
@@ -205,7 +205,7 @@ export function About() {
       </div>
 
       {/* Content container */}
-      <div ref={contentRef} className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 pt-16">
+      <div ref={contentRef} className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 w-full">
         <div className="grid lg:grid-cols-[1fr_1.4fr] gap-12 lg:gap-20 items-center">
 
           {/* Left Column - Photo & Social Icons */}
@@ -239,9 +239,12 @@ export function About() {
             </div>
 
             {/* Full Name - Bigger with typing effect */}
-            <h3 ref={nameRef} className="text-2xl md:text-3xl lg:text-4xl font-black text-black mb-8 tracking-tight text-center">
+            <h3 ref={nameRef} className="text-2xl md:text-3xl lg:text-4xl font-black text-black mb-2 tracking-tight text-center">
               Muhammad Rafi Rizaldi
             </h3>
+            <p className="text-base md:text-lg lg:text-xl font-medium text-gray-500 mb-8 tracking-wide text-center">
+              Engineer | Developer
+            </p>
 
             {/* Social Icons - Brand Colored Hover Effects */}
             <div ref={socialIconsRef} className="flex items-center gap-4">
@@ -257,6 +260,12 @@ export function About() {
                   <Icon icon={link.icon} className="w-6 h-6" />
                 </a>
               ))}
+            </div>
+
+            {/* Location */}
+            <div className="flex items-center gap-2 mt-6 text-gray-500">
+              {/* <Icon icon="mdi:map-marker-outline" className="w-5 h-5" />/ */}
+              <span className="text-base font-medium underline underline-offset-2">Surabaya, Indonesia</span>
             </div>
           </div>
 
