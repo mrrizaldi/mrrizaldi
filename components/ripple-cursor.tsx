@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useReducer, useEffect } from 'react';
+import React, { useReducer, useEffect, useRef, useCallback } from 'react';
+import { useAnimationSettings } from './animation-settings-context';
 
 // Define the shape of a ripple object
 interface Ripple {
@@ -32,7 +33,8 @@ const rippleReducer = (
 ): RippleState => {
   switch (action.type) {
     case 'ADD_RIPPLE':
-      return [...state, action.payload].slice(-30);
+      // OPTIMIZED: Reduced from 30 to 15 max ripples
+      return [...state, action.payload].slice(-15);
     case 'REMOVE_RIPPLE':
       return state.filter((ripple) => ripple.id !== action.payload);
     default:
@@ -48,10 +50,27 @@ const RippleCursor: React.FC<RippleCursorProps> = ({
   color = 'white',
 }) => {
   const [ripples, dispatch] = useReducer(rippleReducer, []);
+  const lastRippleTime = useRef(0);
 
-  const handleMouseMove = (e: MouseEvent): void => {
+  // Get animation settings - use try/catch for SSR safety
+  let animationsEnabled = true;
+  try {
+    const settings = useAnimationSettings();
+    animationsEnabled = settings.animationsEnabled;
+  } catch {
+    // Context not available, default to enabled
+  }
+
+  // OPTIMIZED: Throttled mousemove handler (every 50ms instead of every event)
+  const handleMouseMove = useCallback((e: MouseEvent): void => {
+    if (!animationsEnabled) return;
+
+    const now = Date.now();
+    if (now - lastRippleTime.current < 50) return; // Throttle to 50ms
+    lastRippleTime.current = now;
+
     const ripple: Ripple = {
-      id: `${Date.now()}-${Math.random()}`,
+      id: `${now}-${Math.random()}`,
       x: e.clientX,
       y: e.clientY,
     };
@@ -61,15 +80,20 @@ const RippleCursor: React.FC<RippleCursorProps> = ({
     setTimeout(() => {
       dispatch({ type: 'REMOVE_RIPPLE', payload: ripple.id });
     }, duration);
-  };
+  }, [duration, animationsEnabled]);
 
   useEffect(() => {
+    if (!animationsEnabled) return;
+
     window.addEventListener('mousemove', handleMouseMove);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [duration]);
+  }, [handleMouseMove, animationsEnabled]);
+
+  // Don't render anything if animations are disabled
+  if (!animationsEnabled) return null;
 
   return (
     <div className='fixed top-0 left-0 w-screen h-screen pointer-events-none overflow-hidden z-[9999]'>
@@ -90,6 +114,7 @@ const RippleCursor: React.FC<RippleCursorProps> = ({
             boxShadow: color === 'white'
               ? '0 0 15px rgba(255,255,255,0.3), 0 0 30px rgba(255,255,255,0.1)'
               : `0 0 15px ${color}`,
+            willChange: 'transform, opacity',
           }}
         />
       ))}

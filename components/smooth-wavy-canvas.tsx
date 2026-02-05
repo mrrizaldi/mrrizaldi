@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useCallback } from "react"
+import { useAnimationSettings } from "./animation-settings-context"
 
 interface SmoothWavyCanvasProps {
   backgroundColor?: string
@@ -16,27 +17,37 @@ const SmoothWavyCanvas = ({
   primaryColor = "255, 255, 255",
   secondaryColor = "200, 200, 200",
   accentColor = "150, 150, 150",
-  lineOpacity = 1.8,  // Much higher visibility
+  lineOpacity = 1.8,
   animationSpeed = 0.003,
 }: SmoothWavyCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const requestIdRef = useRef<number | null>(null)
   const timeRef = useRef<number>(0)
-  const mouseRef = useRef({ x: 0, y: 0, isDown: false })
+  const mouseRef = useRef({ x: 0, y: 0 })
 
-  const getMouseInfluence = (x: number, y: number): number => {
+  // Get animation settings - use try/catch for SSR safety
+  let animationsEnabled = true
+  try {
+    const settings = useAnimationSettings()
+    animationsEnabled = settings.animationsEnabled
+  } catch {
+    // Context not available, default to enabled
+  }
+
+  const getMouseInfluence = useCallback((x: number, y: number): number => {
     const dx = x - mouseRef.current.x
     const dy = y - mouseRef.current.y
     const distance = Math.sqrt(dx * dx + dy * dy)
     const maxDistance = 200
     return Math.max(0, 1 - distance / maxDistance)
-  }
+  }, [])
 
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const dpr = window.devicePixelRatio || 1
+    // Use lower DPR for better performance (cap at 1.5)
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
     const rect = canvas.parentElement?.getBoundingClientRect()
     const displayWidth = rect?.width ?? window.innerWidth
     const displayHeight = rect?.height ?? window.innerHeight
@@ -62,14 +73,6 @@ const SmoothWavyCanvas = ({
     mouseRef.current.y = e.clientY - rect.top
   }, [])
 
-  const handleMouseDown = useCallback(() => {
-    mouseRef.current.isDown = true
-  }, [])
-
-  const handleMouseUp = useCallback(() => {
-    mouseRef.current.isDown = false
-  }, [])
-
   const animate = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -77,7 +80,7 @@ const SmoothWavyCanvas = ({
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    const dpr = window.devicePixelRatio || 1
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
     timeRef.current += animationSpeed
 
     const width = canvas.width / dpr
@@ -87,8 +90,8 @@ const SmoothWavyCanvas = ({
     ctx.fillStyle = backgroundColor
     ctx.fillRect(0, 0, width, height)
 
-    // Primary horizontal flowing lines
-    const numPrimaryLines = 25
+    // OPTIMIZED: Reduced from 25 to 12 primary lines
+    const numPrimaryLines = 12
 
     for (let i = 0; i < numPrimaryLines; i++) {
       const yPos = (i / numPrimaryLines) * height
@@ -106,7 +109,8 @@ const SmoothWavyCanvas = ({
       ctx.lineWidth = thickness
       ctx.strokeStyle = `rgba(${primaryColor}, ${opacity})`
 
-      for (let x = 0; x < width; x += 3) {
+      // OPTIMIZED: Increased step from 3 to 6
+      for (let x = 0; x < width; x += 6) {
         const localMouseInfl = getMouseInfluence(x, yPos)
 
         const y =
@@ -124,8 +128,8 @@ const SmoothWavyCanvas = ({
       ctx.stroke()
     }
 
-    // Secondary vertical flowing lines
-    const numSecondaryLines = 18
+    // OPTIMIZED: Reduced from 18 to 8 secondary lines
+    const numSecondaryLines = 8
 
     for (let i = 0; i < numSecondaryLines; i++) {
       const xPos = (i / numSecondaryLines) * width
@@ -143,7 +147,8 @@ const SmoothWavyCanvas = ({
       ctx.lineWidth = thickness
       ctx.strokeStyle = `rgba(${secondaryColor}, ${opacity})`
 
-      for (let y = 0; y < height; y += 3) {
+      // OPTIMIZED: Increased step from 3 to 6
+      for (let y = 0; y < height; y += 6) {
         const localMouseInfl = getMouseInfluence(xPos, y)
 
         const x =
@@ -161,8 +166,8 @@ const SmoothWavyCanvas = ({
       ctx.stroke()
     }
 
-    // Accent diagonal flowing lines
-    const numAccentLines = 10
+    // OPTIMIZED: Reduced from 10 to 5 accent lines
+    const numAccentLines = 5
 
     for (let i = 0; i < numAccentLines; i++) {
       const offset = (i / numAccentLines) * width * 1.5 - width * 0.25
@@ -176,7 +181,8 @@ const SmoothWavyCanvas = ({
       ctx.lineWidth = thickness
       ctx.strokeStyle = `rgba(${accentColor}, ${opacity})`
 
-      const steps = 80
+      // OPTIMIZED: Reduced from 80 to 40 steps
+      const steps = 40
       for (let j = 0; j <= steps; j++) {
         const progress = j / steps
         const baseX = offset + progress * width
@@ -198,7 +204,39 @@ const SmoothWavyCanvas = ({
     }
 
     requestIdRef.current = requestAnimationFrame(animate)
-  }, [backgroundColor, primaryColor, secondaryColor, accentColor, lineOpacity, animationSpeed])
+  }, [backgroundColor, primaryColor, secondaryColor, accentColor, lineOpacity, animationSpeed, getMouseInfluence])
+
+  // Static render for when animations are disabled
+  const renderStatic = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
+    const width = canvas.width / dpr
+    const height = canvas.height / dpr
+
+    ctx.fillStyle = backgroundColor
+    ctx.fillRect(0, 0, width, height)
+
+    // Draw static wavy lines (fewer and simplified)
+    const numLines = 8
+    for (let i = 0; i < numLines; i++) {
+      const yPos = (i / numLines) * height
+      ctx.beginPath()
+      ctx.lineWidth = 0.5
+      ctx.strokeStyle = `rgba(${primaryColor}, 0.1)`
+
+      for (let x = 0; x < width; x += 10) {
+        const y = yPos + 20 * Math.sin(x * 0.01 + i * 0.5)
+        if (x === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
+      }
+      ctx.stroke()
+    }
+  }, [backgroundColor, primaryColor])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -208,17 +246,17 @@ const SmoothWavyCanvas = ({
 
     const handleResize = () => resizeCanvas()
     window.addEventListener("resize", handleResize)
-    canvas.addEventListener("mousemove", handleMouseMove)
-    canvas.addEventListener("mousedown", handleMouseDown)
-    canvas.addEventListener("mouseup", handleMouseUp)
 
-    animate()
+    if (animationsEnabled) {
+      canvas.addEventListener("mousemove", handleMouseMove)
+      animate()
+    } else {
+      renderStatic()
+    }
 
     return () => {
       window.removeEventListener("resize", handleResize)
       canvas.removeEventListener("mousemove", handleMouseMove)
-      canvas.removeEventListener("mousedown", handleMouseDown)
-      canvas.removeEventListener("mouseup", handleMouseUp)
 
       if (requestIdRef.current) {
         cancelAnimationFrame(requestIdRef.current)
@@ -227,11 +265,15 @@ const SmoothWavyCanvas = ({
 
       timeRef.current = 0
     }
-  }, [animate, resizeCanvas, handleMouseMove, handleMouseDown, handleMouseUp])
+  }, [animate, renderStatic, resizeCanvas, handleMouseMove, animationsEnabled])
 
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden">
-      <canvas ref={canvasRef} className="block w-full h-full" />
+      <canvas
+        ref={canvasRef}
+        className="block w-full h-full"
+        style={{ willChange: animationsEnabled ? 'auto' : 'auto' }}
+      />
     </div>
   )
 }

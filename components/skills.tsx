@@ -1,11 +1,12 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useEffect, useState } from "react"
 import { Icon } from "@iconify/react"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { useGSAP } from "@gsap/react"
 import FlowingDots from "./flowing-dots"
+import { useAnimationSettings } from "./animation-settings-context"
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger)
@@ -58,21 +59,28 @@ const rows = [
 function MarqueeRow({
   items,
   direction = "left",
-  speed = 30
+  speed = 30,
+  isVisible = true,
+  animationsEnabled = true,
 }: {
   items: typeof rows[0]
   direction?: "left" | "right"
   speed?: number
+  isVisible?: boolean
+  animationsEnabled?: boolean
 }) {
-  // Triple items for seamless infinite loop (ensures full coverage)
-  const duplicatedItems = [...items, ...items, ...items]
+  // OPTIMIZED: Reduced from 3x to 2x duplication
+  const duplicatedItems = [...items, ...items]
 
   return (
     <div className="relative overflow-hidden py-3 group mx-8 md:mx-16">
       <div
         className="flex gap-4 w-max"
         style={{
-          animation: `marquee-${direction} ${speed}s linear infinite`,
+          animation: animationsEnabled && isVisible
+            ? `marquee-${direction} ${speed}s linear infinite`
+            : 'none',
+          willChange: animationsEnabled ? 'transform' : 'auto',
         }}
       >
         {duplicatedItems.map((tech, index) => (
@@ -105,9 +113,35 @@ export function Skills() {
   const sectionRef = useRef<HTMLElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
+
+  // Get animation settings
+  let animationsEnabled = true
+  try {
+    const settings = useAnimationSettings()
+    animationsEnabled = settings.animationsEnabled
+  } catch {
+    // Context not available, default to enabled
+  }
+
+  // OPTIMIZED: Use IntersectionObserver to pause marquee when not visible
+  useEffect(() => {
+    if (!sectionRef.current) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting)
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(sectionRef.current)
+
+    return () => observer.disconnect()
+  }, [])
 
   useGSAP(() => {
-    if (!sectionRef.current) return
+    if (!sectionRef.current || !animationsEnabled) return
 
     // Title animation
     if (titleRef.current) {
@@ -141,7 +175,7 @@ export function Skills() {
       })
     }
 
-  }, { scope: sectionRef })
+  }, { scope: sectionRef, dependencies: [animationsEnabled] })
 
   return (
     <section
@@ -170,10 +204,10 @@ export function Skills() {
 
         {/* Marquee Rows */}
         <div ref={contentRef} className="space-y-2">
-          <MarqueeRow items={rows[0]} direction="left" speed={35} />
-          <MarqueeRow items={rows[1]} direction="right" speed={40} />
-          <MarqueeRow items={rows[2]} direction="left" speed={45} />
-          <MarqueeRow items={rows[3]} direction="right" speed={38} />
+          <MarqueeRow items={rows[0]} direction="left" speed={35} isVisible={isVisible} animationsEnabled={animationsEnabled} />
+          <MarqueeRow items={rows[1]} direction="right" speed={40} isVisible={isVisible} animationsEnabled={animationsEnabled} />
+          <MarqueeRow items={rows[2]} direction="left" speed={45} isVisible={isVisible} animationsEnabled={animationsEnabled} />
+          <MarqueeRow items={rows[3]} direction="right" speed={38} isVisible={isVisible} animationsEnabled={animationsEnabled} />
         </div>
       </div>
     </section>

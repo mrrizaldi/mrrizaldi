@@ -5,6 +5,8 @@ import "./globals.css"
 import { Footer } from "@/components/footer"
 import { GsapProvider } from "@/components/gsap-provider"
 import RippleCursor from "@/components/ripple-cursor"
+import { AnimationSettingsProvider } from "@/components/animation-settings-context"
+import { AnimationToggle } from "@/components/animation-toggle"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,11 +41,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={`scroll-smooth ${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
-        <GsapProvider>
-          <RippleCursor />
-          {children}
-          <Footer />
-        </GsapProvider>
+        <AnimationSettingsProvider>
+          <GsapProvider>
+            <RippleCursor />
+            {children}
+            <Footer />
+            <AnimationToggle />
+          </GsapProvider>
+        </AnimationSettingsProvider>
       </body>
     </html>
   )

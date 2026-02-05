@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useCallback } from "react"
+import { useAnimationSettings } from "./animation-settings-context"
 
 interface FlowingPatternProps {
   backgroundColor?: string
@@ -11,12 +12,13 @@ interface FlowingPatternProps {
 const FlowingDots = ({
   backgroundColor = "#000000",
   particleColor = "255, 255, 255",
-  animationSpeed = 0.002, // Slower speed for smoother effect
+  animationSpeed = 0.002,
 }: FlowingPatternProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const timeRef = useRef<number>(0)
   const animationFrameId = useRef<number | null>(null)
-  const mouseRef = useRef({ x: 0, y: 0, isDown: false })
+  const mouseRef = useRef({ x: 0, y: 0 })
+  const frameCountRef = useRef(0)
   const flowPointsRef = useRef<
     Array<{
       x: number
@@ -31,6 +33,15 @@ const FlowingDots = ({
     }>
   >([])
 
+  // Get animation settings - use try/catch for SSR safety
+  let animationsEnabled = true
+  try {
+    const settings = useAnimationSettings()
+    animationsEnabled = settings.animationsEnabled
+  } catch {
+    // Context not available, default to enabled
+  }
+
   const noise = (x: number, y: number, t: number): number => {
     const sin1 = Math.sin(x * 0.01 + t)
     const sin2 = Math.sin(y * 0.01 + t * 0.8)
@@ -42,7 +53,8 @@ const FlowingDots = ({
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const dpr = window.devicePixelRatio || 1
+    // Use lower DPR for better performance
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
 
     const rect = canvas.parentElement?.getBoundingClientRect()
     const displayWidth = rect?.width ?? window.innerWidth
@@ -60,8 +72,8 @@ const FlowingDots = ({
       ctx.scale(dpr, dpr)
     }
 
-    // Larger grid size for less density and better performance
-    const gridSize = 16
+    // OPTIMIZED: Increased grid size from 16 to 28 (reduces particles by ~70%)
+    const gridSize = 28
     flowPointsRef.current = []
 
     for (let x = gridSize / 2; x < displayWidth; x += gridSize) {
@@ -86,19 +98,8 @@ const FlowingDots = ({
     if (!canvas) return
 
     const rect = canvas.getBoundingClientRect()
-    const newX = e.clientX - rect.left
-    const newY = e.clientY - rect.top
-
-    mouseRef.current.x = newX
-    mouseRef.current.y = newY
-  }, [])
-
-  const handleMouseDown = useCallback(() => {
-    mouseRef.current.isDown = true
-  }, [])
-
-  const handleMouseUp = useCallback(() => {
-    mouseRef.current.isDown = false
+    mouseRef.current.x = e.clientX - rect.left
+    mouseRef.current.y = e.clientY - rect.top
   }, [])
 
   const animate = useCallback(() => {
@@ -108,14 +109,25 @@ const FlowingDots = ({
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    const displayWidth = canvas.width / (window.devicePixelRatio || 1)
-    const displayHeight = canvas.height / (window.devicePixelRatio || 1)
+    // OPTIMIZED: Frame skipping - only update every 2nd frame (30fps instead of 60fps)
+    frameCountRef.current++
+    if (frameCountRef.current % 2 !== 0) {
+      animationFrameId.current = requestAnimationFrame(animate)
+      return
+    }
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
+    const displayWidth = canvas.width / dpr
+    const displayHeight = canvas.height / dpr
 
     timeRef.current += animationSpeed
 
     // Clear canvas
     ctx.fillStyle = backgroundColor
     ctx.fillRect(0, 0, displayWidth, displayHeight)
+
+    // OPTIMIZED: Batch all dots into single path
+    ctx.beginPath()
 
     // Update and draw flow points
     flowPointsRef.current.forEach((point) => {
@@ -144,14 +156,9 @@ const FlowingDots = ({
       const nextX = point.x + point.vx
       const nextY = point.y + point.vy
 
-      // Draw dot
-      const speed = Math.sqrt(point.vx * point.vx + point.vy * point.vy)
-      const alpha = Math.min(0.4, speed * 4 + 0.1) // Lower base alpha for subtlety
-
-      ctx.beginPath()
+      // Draw dot using arc
+      ctx.moveTo(point.x + 1.5, point.y)
       ctx.arc(point.x, point.y, 1.5, 0, Math.PI * 2)
-      ctx.fillStyle = `rgba(${particleColor}, ${alpha})`
-      ctx.fill()
 
       // Update position
       point.x = nextX
@@ -169,8 +176,40 @@ const FlowingDots = ({
       point.vy += (point.originalY - point.y) * returnForce
     })
 
+    // Single fill call for all dots
+    ctx.fillStyle = `rgba(${particleColor}, 0.25)`
+    ctx.fill()
+
     animationFrameId.current = requestAnimationFrame(animate)
   }, [particleColor, animationSpeed, backgroundColor])
+
+  // Static render for when animations are disabled
+  const renderStatic = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
+    const displayWidth = canvas.width / dpr
+    const displayHeight = canvas.height / dpr
+
+    ctx.fillStyle = backgroundColor
+    ctx.fillRect(0, 0, displayWidth, displayHeight)
+
+    // Draw static dots grid
+    ctx.beginPath()
+    const gridSize = 40
+    for (let x = gridSize / 2; x < displayWidth; x += gridSize) {
+      for (let y = gridSize / 2; y < displayHeight; y += gridSize) {
+        ctx.moveTo(x + 1.5, y)
+        ctx.arc(x, y, 1.5, 0, Math.PI * 2)
+      }
+    }
+    ctx.fillStyle = `rgba(${particleColor}, 0.15)`
+    ctx.fill()
+  }, [backgroundColor, particleColor])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -180,17 +219,17 @@ const FlowingDots = ({
 
     const handleResize = () => resizeCanvas()
     window.addEventListener("resize", handleResize)
-    canvas.addEventListener("mousemove", handleMouseMove)
-    canvas.addEventListener("mousedown", handleMouseDown)
-    canvas.addEventListener("mouseup", handleMouseUp)
 
-    animate()
+    if (animationsEnabled) {
+      canvas.addEventListener("mousemove", handleMouseMove)
+      animate()
+    } else {
+      renderStatic()
+    }
 
     return () => {
       window.removeEventListener("resize", handleResize)
       canvas.removeEventListener("mousemove", handleMouseMove)
-      canvas.removeEventListener("mousedown", handleMouseDown)
-      canvas.removeEventListener("mouseup", handleMouseUp)
 
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current)
@@ -198,9 +237,10 @@ const FlowingDots = ({
       }
 
       timeRef.current = 0
+      frameCountRef.current = 0
       flowPointsRef.current = []
     }
-  }, [animate, resizeCanvas, handleMouseMove, handleMouseDown, handleMouseUp])
+  }, [animate, renderStatic, resizeCanvas, handleMouseMove, animationsEnabled])
 
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-auto">
