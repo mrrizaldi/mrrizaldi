@@ -7,18 +7,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "All fields are required" }, { status: 400 })
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
+  const res = await fetch("https://api.postmarkapp.com/email", {
     method: "POST",
     headers: {
+      Accept: "application/json",
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "X-Postmark-Server-Token": process.env.POSTMARK_SERVER_TOKEN!,
     },
     body: JSON.stringify({
-      from: "Portfolio Contact <onboarding@resend.dev>",
-      to: "muhammadrafiriz23@gmail.com",
-      reply_to: email,
-      subject: `[Portfolio] ${subject}`,
-      html: `
+      From: process.env.POSTMARK_SENDER,
+      To: "muhammadrafiriz23@gmail.com",
+      ReplyTo: email,
+      Subject: `[Portfolio] ${subject}`,
+      HtmlBody: `
         <p><strong>From:</strong> ${name} (${email})</p>
         <p><strong>Subject:</strong> ${subject}</p>
         <hr />
@@ -28,8 +29,8 @@ export async function POST(request: NextRequest) {
   })
 
   if (!res.ok) {
-    const err = await res.text()
-    console.error("Resend error:", err)
+    const err = await res.json().catch(() => res.statusText)
+    console.error("Postmark error:", err)
     return NextResponse.json({ error: "Failed to send email" }, { status: 500 })
   }
 
