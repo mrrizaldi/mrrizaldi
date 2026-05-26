@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Mail, Phone, MapPin, Send, Github, Linkedin } from "lucide-react"
+import { Icon } from "@iconify/react"
 import Link from "next/link"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
@@ -30,11 +30,23 @@ export function Contact() {
     subject: "",
     message: "",
   })
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Form submitted:", formData)
-    setFormData({ name: "", email: "", subject: "", message: "" })
+    setStatus("loading")
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+      if (!res.ok) throw new Error()
+      setStatus("success")
+      setFormData({ name: "", email: "", subject: "", message: "" })
+    } catch {
+      setStatus("error")
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -46,19 +58,13 @@ export function Contact() {
 
   const contactInfo = [
     {
-      icon: <Mail className="h-5 w-5" />,
+      icon: <Icon icon="mdi:email-outline" className="h-5 w-5" />,
       label: "Email",
-      value: "your.email@example.com",
-      href: "mailto:your.email@example.com",
+      value: "muhammadrafiriz23@gmail.com",
+      href: "mailto:muhammadrafiriz23@gmail.com",
     },
     {
-      icon: <Phone className="h-5 w-5" />,
-      label: "Phone",
-      value: "+62 123 456 7890",
-      href: "tel:+621234567890",
-    },
-    {
-      icon: <MapPin className="h-5 w-5" />,
+      icon: <Icon icon="mdi:map-marker-outline" className="h-5 w-5" />,
       label: "Location",
       value: "Surabaya, Indonesia",
       href: "#",
@@ -67,14 +73,19 @@ export function Contact() {
 
   const socialLinks = [
     {
-      icon: <Github className="h-5 w-5" />,
+      icon: <Icon icon="mdi:github" className="h-5 w-5" />,
       label: "GitHub",
-      href: "https://github.com",
+      href: "https://github.com/mrrizaldi",
     },
     {
-      icon: <Linkedin className="h-5 w-5" />,
+      icon: <Icon icon="mdi:linkedin" className="h-5 w-5" />,
       label: "LinkedIn",
-      href: "https://linkedin.com",
+      href: "https://www.linkedin.com/in/muhammad-rafi-rizaldi-a54414318/",
+    },
+    {
+      icon: <Icon icon="mdi:instagram" className="h-5 w-5" />,
+      label: "Instagram",
+      href: "https://instagram.com/mrzld0",
     },
   ]
 
@@ -314,9 +325,19 @@ export function Contact() {
                     className="bg-zinc-800 border-zinc-700 text-white placeholder:text-gray-500 focus:border-white focus:ring-white/20"
                   />
                 </div>
-                <Button type="submit" className="w-full bg-white text-black font-bold hover:bg-gray-200 form-input">
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Message
+                {status === "success" && (
+                  <p className="text-green-400 text-sm font-medium">Message sent! I'll get back to you soon.</p>
+                )}
+                {status === "error" && (
+                  <p className="text-red-400 text-sm font-medium">Something went wrong. Please try again.</p>
+                )}
+                <Button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="w-full bg-white text-black font-bold hover:bg-gray-200 form-input disabled:opacity-60"
+                >
+                  <Icon icon="mdi:send" className="h-4 w-4 mr-2" />
+                  {status === "loading" ? "Sending…" : "Send Message"}
                 </Button>
               </form>
             </CardContent>
@@ -371,16 +392,16 @@ export function Contact() {
               <CardContent className="p-6">
                 <h4 className="font-bold text-white mb-2 text-lg">Let's Collaborate!</h4>
                 <p className="text-gray-400 mb-4">
-                  I'm currently open to new opportunities in software development, robotics projects, and innovative
-                  tech solutions. Whether you're looking for a full-stack developer, robotics engineer, or technical
-                  team lead, I'd love to hear from you.
+                  I'm currently open to new opportunities in software development and innovative tech solutions.
+                  Whether you're looking for a full-stack developer, mobile engineer, or technical team lead,
+                  I'd love to hear from you.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <span className="px-3 py-1 bg-zinc-800 text-white text-sm rounded-full border border-zinc-700 collab-tag">
                     Full-Stack Development
                   </span>
                   <span className="px-3 py-1 bg-zinc-800 text-white text-sm rounded-full border border-zinc-700 collab-tag">
-                    Robotics Systems
+                    Mobile Development
                   </span>
                   <span className="px-3 py-1 bg-zinc-800 text-white text-sm rounded-full border border-zinc-700 collab-tag">
                     Team Leadership

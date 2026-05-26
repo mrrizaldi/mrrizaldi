@@ -284,7 +284,7 @@ export function About() {
               <p className="text-line text-lg md:text-xl text-gray-700 leading-relaxed">
                 A dedicated <span className="font-bold text-black">software engineer</span> from{" "}
                 <span className="font-bold text-black">Politeknik Elektronika Negeri Surabaya (PENS)</span> with{" "}
-                <span className="font-bold text-black">2+ years of experience</span> specializing in{" "}
+                <span className="font-bold text-black">3+ years of experience</span> specializing in{" "}
                 <span className="font-bold text-black">web development</span> and{" "}
                 <span className="font-bold text-black">mobile applications</span>. With experience leading development teams as a{" "}
                 <span className="font-bold text-black">Product Owner</span>, I bridge the gap between cutting-edge technology and practical real-world solutions using modern frameworks like{" "}

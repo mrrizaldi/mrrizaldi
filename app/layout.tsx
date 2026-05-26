@@ -21,14 +21,14 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
-  title: "Muhammad Rafi Rizaldi | Software Engineer & Robotics Developer",
+  title: "Muhammad Rafi Rizaldi | Software Engineer",
   description:
-    "Full-stack developer specializing in web development, mobile apps, and robotics systems. Experienced in Next.js, Flutter, C++, and ROS.",
-  keywords: ["Software Engineer", "Full Stack Developer", "Robotics", "Next.js", "Flutter", "React", "TypeScript"],
+    "Full-stack developer with 3+ years of experience specializing in web development and mobile applications. Experienced in Next.js, Flutter, React, and TypeScript.",
+  keywords: ["Software Engineer", "Full Stack Developer", "Next.js", "Flutter", "React", "TypeScript"],
   authors: [{ name: "Muhammad Rafi Rizaldi" }],
   openGraph: {
-    title: "Muhammad Rafi Rizaldi | Software Engineer & Robotics Developer",
-    description: "Full-stack developer specializing in web development, mobile apps, and robotics systems.",
+    title: "Muhammad Rafi Rizaldi | Software Engineer",
+    description: "Full-stack developer with 3+ years of experience specializing in web development and mobile applications.",
     type: "website",
   },
 }

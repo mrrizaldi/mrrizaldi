@@ -22,6 +22,22 @@ export function Projects() {
 
   const projects = [
     {
+      title: "Catalytic Capital Repository (CCR)",
+      duration: "Ongoing",
+      organization: "Global Capacity Building Coalition (GCBC)",
+      tech: ["React Router v7", "TypeScript", "Express", "PostgreSQL", "Redis", "BullMQ", "AWS S3"],
+      situation:
+        "The Global Capacity Building Coalition needed a centralized platform to catalog and compare catalytic capital providers and funding windows for climate and sustainable finance.",
+      task:
+        "Built and maintained the full-stack web application as a core engineer — covering the public-facing directory, provider questionnaire flow, backoffice admin system, and background job infrastructure.",
+      action:
+        "Used React Router v7 (SSR) on top of Express for the server, Kysely + PostgreSQL for type-safe database queries, BullMQ + Redis for async email and notification jobs, and AWS S3 for file storage. Implemented role-based auth (admin, content admin, provider admin, user) and a multi-step questionnaire for provider onboarding.",
+      result:
+        "Delivered a production-grade platform used by real organizations to discover and compare catalytic capital opportunities globally, with a structured backoffice for content management and reporting.",
+      category: "Web Development",
+      featured: true,
+    },
+    {
       title: "Intelligent Humanoid Robot EROS",
       duration: "2 Years",
       organization: "Politeknik Elektronika Negeri Surabaya (PENS)",
